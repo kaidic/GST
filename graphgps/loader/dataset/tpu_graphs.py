@@ -44,7 +44,7 @@ class TPUGraphs(InMemoryDataset):
         
     @property
     def raw_file_names(self) -> List[str]:
-        return ['tpugraphs_20221203']
+        return ['npz/layout/xla/random']
 
     @property
     def processed_file_names(self) -> List[str]:
@@ -52,51 +52,38 @@ class TPUGraphs(InMemoryDataset):
 
 
     def process(self):
- 
-        parse_val = lambda f: set([re.match("--validation_app=(.*)", x).group(1) if re.match("--validation_app=(.*)", x) is not None else None
-                               for x in f.read().split('\n')]) 
-        parse_test = lambda f: set([re.match("--test_app=(.*)", x).group(1) if re.match("--test_app=(.*)", x) is not None else None
-                               for x in f.read().split('\n')])  
-        with open(osp.join(self.raw_dir, 'TPUGraph_split.txt'), 'r') as f:
-            val_names = parse_val(f)
-        with open(osp.join(self.raw_dir, 'TPUGraph_split.txt'), 'r') as f:
-            test_names = parse_test(f)
-            
         data_list = []
+        split_names = ['train', 'valid', 'test']
         split_dict = {'train': [], 'valid': [], 'test': []}
+        graphs_cnt = 0
         parts_cnt = 0
         for raw_path in self.raw_paths:
-            filenames = glob.glob(osp.join(raw_path, '*random.npz'))
-            for i, filename in enumerate(filenames):
-                model_name = '.'.join(filename.split('.')[1:-2])
-                if model_name in val_names:
-                    split_dict['valid'].append(i)
-                    print(model_name)
-                elif model_name in test_names:
-                    split_dict['test'].append(i)
-                else:
-                    split_dict['train'].append(i)
-                np_file = np.load(filename)
-                np_file = flatten_dict(np_file)
-                edge_index = torch.tensor(np_file['edge_index_dict.op|feeds|op'])
-                runtime = torch.tensor(np_file['node_runtime.configs'])
-                op = torch.tensor(np_file["node_feat_dict.op"])
-                op_code = torch.tensor(np_file["node_opcode.op"])
-                config_feats = torch.tensor(np_file["node_feat_dict.configs"])
-                config_feats = config_feats.view(-1, config_feats.shape[-1])
-                config_idx = torch.tensor(np_file["node_feat_dict.config_idx"])
-                num_config = torch.tensor(np_file["num_nodes_dict.configs"])
-                num_config_idx = torch.tensor(np_file["num_nodes_dict.config_idx"])
-                num_nodes = torch.tensor(np_file["num_nodes_dict.op"])
-                num_parts = num_nodes // self.thres + 1
-                interval = num_nodes // num_parts
-                partptr = torch.arange(0, num_nodes, interval+1)
-                if partptr[-1] != num_nodes:
-                    partptr = torch.cat([partptr, torch.tensor([num_nodes])])
-                data = Data(edge_index=edge_index, op_feats=op, op_code=op_code, config_feats=config_feats, config_idx=config_idx,
-                            num_config=num_config, num_config_idx=num_config_idx, y=runtime, num_nodes=num_nodes, partptr=partptr, partition_idx = parts_cnt)
-                data_list.append(data)
-                parts_cnt += num_parts * num_config
+            for split_name in split_names:
+                filenames = glob.glob(osp.join(os.path.join(raw_path, split_name), '*.npz'))
+                for filename in filenames:
+                    split_dict[split_name].append(graphs_cnt)
+                    np_file = np.load(filename)
+                    np_file = flatten_dict(np_file)
+                    edge_index = torch.tensor(np_file['edge_index_dict.op|feeds|op'])
+                    runtime = torch.tensor(np_file['node_runtime.configs'])
+                    op = torch.tensor(np_file["node_feat_dict.op"])
+                    op_code = torch.tensor(np_file["node_opcode.op"])
+                    config_feats = torch.tensor(np_file["node_feat_dict.configs"])
+                    config_feats = config_feats.view(-1, config_feats.shape[-1])
+                    config_idx = torch.tensor(np_file["node_feat_dict.config_idx"])
+                    num_config = torch.tensor(np_file["num_nodes_dict.configs"])
+                    num_config_idx = torch.tensor(np_file["num_nodes_dict.config_idx"])
+                    num_nodes = torch.tensor(np_file["num_nodes_dict.op"])
+                    num_parts = num_nodes // self.thres + 1
+                    interval = num_nodes // num_parts
+                    partptr = torch.arange(0, num_nodes, interval+1)
+                    if partptr[-1] != num_nodes:
+                        partptr = torch.cat([partptr, torch.tensor([num_nodes])])
+                    data = Data(edge_index=edge_index, op_feats=op, op_code=op_code, config_feats=config_feats, config_idx=config_idx,
+                                num_config=num_config, num_config_idx=num_config_idx, y=runtime, num_nodes=num_nodes, partptr=partptr, partition_idx = parts_cnt)
+                    data_list.append(data)
+                    graphs_cnt += 1
+                    parts_cnt += num_parts * num_config
             torch.save(self.collate(data_list), self.processed_paths[0])
             torch.save(split_dict, self.processed_paths[1])
     def get_idx_split(self):
