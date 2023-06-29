@@ -21,7 +21,7 @@ We provide several training examples with this repo:
 python main.py --cfg configs/malnetlarge-GST.yaml
 ```
 
-For TpuGraphs dataset, download the dataset following instructions [here](https://github.com/google-research-datasets/tpu_graphs), by default, put the train/val/test splits under the folder `./datasets/TPUGraphs/raw/npz/layout/xla/random'. Then run
+For TpuGraphs dataset, download the dataset following instructions [here](https://github.com/google-research-datasets/tpu_graphs), by default, put the `train/valid/test` splits under the folder `/datasets/TPUGraphs/raw/npz/layout/xla/random`. Then run
 
 ```bash
 python main_tpugraphs.py --cfg configs/tpugraphs.yaml
