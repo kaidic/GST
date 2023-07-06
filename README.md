@@ -27,6 +27,8 @@ For TpuGraphs dataset, download the dataset following instructions [here](https:
 python main_tpugraphs.py --cfg configs/tpugraphs.yaml
 ```
 
+Please change `device` from `cuda` to `cpu` in the yaml file if you want to try cpu only training.
+
 
 ### Reference
 

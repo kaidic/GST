@@ -34,3 +34,4 @@ optim:
   max_epoch: 20000
 share:
   dim_in: 286
+device: cuda
