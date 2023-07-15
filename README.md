@@ -21,7 +21,7 @@ We provide several training examples with this repo:
 python main.py --cfg configs/malnetlarge-GST.yaml
 ```
 
-For TpuGraphs dataset, download the dataset following instructions [here](https://github.com/google-research-datasets/tpu_graphs), by default, put the `train/valid/test` splits under the folder `/datasets/TPUGraphs/raw/npz/layout/xla/random`. Then run
+For TpuGraphs dataset, download the dataset following instructions [here](https://github.com/google-research-datasets/tpu_graphs), by default, put the `train/valid/test` splits under the folder `/datasets/TPUGraphs/raw/npz/layout/xla/random`. (Modify `raw_file_names` in `tpu_graphs.py` to change to other spilts)Then run
 
 ```bash
 python main_tpugraphs.py --cfg configs/tpugraphs.yaml
@@ -29,6 +29,13 @@ python main_tpugraphs.py --cfg configs/tpugraphs.yaml
 
 Please change `device` from `cuda` to `cpu` in the yaml file if you want to try cpu only training.
 
+To evaluate on TpuGraphs dataset, run
+
+```bash
+python main_tpugraphs.py --cfg configs/tpugraphs.yaml
+```
+
+If memory is not sufficient, change `batch_size` to 1 during evaluation. Set `cfg.train.ckpt_best` to `True` to save the best validation model during training for further evaluation.
 
 ### Reference
 

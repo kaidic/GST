@@ -117,26 +117,10 @@ class TPUModel(torch.nn.Module):
         super().__init__()
         self.model = model
         self.emb = nn.Embedding(128, 128, max_norm=True)
-        # 256
         self.linear_map = nn.Linear(286, 128, bias=True)
         self.op_weights = nn.Parameter(torch.ones(1,1,requires_grad=True) * 100)
         self.config_weights = nn.Parameter(torch.ones(1,18,requires_grad=True) * 100)
-        # get opcode, concat first, multiply config feature by 100 and learnable
-        # no weights needed first
-        # one first layer mlp
-        # embedding dropout 
-        # graph sage mean pooling 
-        # no bias in gnn
-        # drop 10% keep 90%
-        # one mlp
-        # l2 norm
-        # 3 layer mlp 
-        # no bias
-        # now start graph embedding
-        # concat of sum and max pooling
-        # 1 layer mlp with bias, no activation
-        
-        # adam  with clip norm of value 1 start from 1e-5, later larger to 1e-3 max 
+
 
 def pairwise_hinge_loss_batch(pred, true):
     # pred: (batch_size, num_preds )
