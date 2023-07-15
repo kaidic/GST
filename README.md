@@ -32,7 +32,7 @@ Please change `device` from `cuda` to `cpu` in the yaml file if you want to try 
 To evaluate on TpuGraphs dataset, run
 
 ```bash
-python main_tpugraphs.py --cfg configs/tpugraphs.yaml
+python test_tpugraphs.py --cfg configs/tpugraphs.yaml
 ```
 
 If memory is not sufficient, change `batch_size` to 1 during evaluation. Set `cfg.train.ckpt_best` to `True` to save the best validation model during training for further evaluation.
