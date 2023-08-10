@@ -33,18 +33,25 @@ class TPUGraphs(InMemoryDataset):
     def __init__(self, root: str, thres: int = 1000,
                  transform: Optional[Callable] = None,
                  pre_transform: Optional[Callable] = None,
-                 pre_filter: Optional[Callable] = None):
+                 pre_filter: Optional[Callable] = None,
+                 source: str = 'nlp',  # 'nlp' or 'xla'
+                 search: str = 'random'  # 'random' or 'default'
+                ):
+        assert source in ('nlp', 'xla')
+        assert search in ('random', 'default')
         self.thres = thres
         super().__init__(root, transform, pre_transform, pre_filter)
         self.data, self.slices = torch.load(self.processed_paths[0])
         op_feats_mean = torch.mean(self.data.op_feats, dim=0, keepdim=True)
         op_feats_std = torch.std(self.data.op_feats, dim=0, keepdim=True)
         op_feats_std[op_feats_std < 1e-6] = 1
+        self.source = source
+        self.search = search
         self.data.op_feats = (self.data.op_feats - op_feats_mean) / op_feats_std
         
     @property
     def raw_file_names(self) -> List[str]:
-        return ['npz/layout/xla/random']
+        return [f'npz/layout/{self.search}/{self.source}']
 
     @property
     def processed_file_names(self) -> List[str]:
