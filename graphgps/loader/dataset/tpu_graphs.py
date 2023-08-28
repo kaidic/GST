@@ -11,22 +11,6 @@ from torch_geometric.data import (InMemoryDataset, Data, download_url,
 from torch_geometric.utils import remove_isolated_nodes
 from torch_sparse import SparseTensor
 
-def flatten_dict(in_dict, current_key_chain=None, out_dict=None):
-  """Convert dict with keys "key1.key2" to multi-level "key1": {"key2" .. }."""
-  if current_key_chain is None:
-    current_key_chain = []
-  if out_dict is None:
-    out_dict = {}
-  for key, value in in_dict.items():
-    if isinstance(key, tuple):
-      key = '|'.join(key)
-
-    if isinstance(value, dict):
-      flatten_dict(value, current_key_chain + [key], out_dict)
-    else:
-      key = '.'.join(current_key_chain + [key])
-      out_dict[key] = value
-  return out_dict
 
 class TPUGraphs(InMemoryDataset):
 
@@ -69,18 +53,19 @@ class TPUGraphs(InMemoryDataset):
                 filenames = glob.glob(osp.join(os.path.join(raw_path, split_name), '*.npz'))
                 for filename in filenames:
                     split_dict[split_name].append(graphs_cnt)
-                    np_file = np.load(filename)
-                    np_file = flatten_dict(np_file)
-                    edge_index = torch.tensor(np_file['edge_index_dict.op|feeds|op'])
-                    runtime = torch.tensor(np_file['node_runtime.configs'])
-                    op = torch.tensor(np_file["node_feat_dict.op"])
-                    op_code = torch.tensor(np_file["node_opcode.op"])
-                    config_feats = torch.tensor(np_file["node_feat_dict.configs"])
+                    np_file = dict(np.load(filename))
+                    if "edge_index" not in np_file:
+                      print('error in', filename)
+                    edge_index = torch.tensor(np_file["edge_index"].T)
+                    runtime = torch.tensor(np_file["config_runtime"])
+                    op = torch.tensor(np_file["node_feat"])
+                    op_code = torch.tensor(np_file["node_opcode"])
+                    config_feats = torch.tensor(np_file["node_config_feat"])
                     config_feats = config_feats.view(-1, config_feats.shape[-1])
-                    config_idx = torch.tensor(np_file["node_feat_dict.config_idx"])
-                    num_config = torch.tensor(np_file["num_nodes_dict.configs"])
-                    num_config_idx = torch.tensor(np_file["num_nodes_dict.config_idx"])
-                    num_nodes = torch.tensor(np_file["num_nodes_dict.op"])
+                    config_idx = torch.tensor(np_file["node_config_ids"])
+                    num_config = torch.tensor(np_file["node_config_feat"].shape[0])
+                    num_config_idx = torch.tensor(np_file["node_config_feat"].shape[1])
+                    num_nodes = torch.tensor(np_file["node_feat"].shape[0])
                     num_parts = num_nodes // self.thres + 1
                     interval = num_nodes // num_parts
                     partptr = torch.arange(0, num_nodes, interval+1)
