@@ -40,13 +40,13 @@ class TPUGraphs(InMemoryDataset):
         assert source in ('nlp', 'xla')
         assert search in ('random', 'default')
         self.thres = thres
+        self.source = source
+        self.search = search
         super().__init__(root, transform, pre_transform, pre_filter)
         self.data, self.slices = torch.load(self.processed_paths[0])
         op_feats_mean = torch.mean(self.data.op_feats, dim=0, keepdim=True)
         op_feats_std = torch.std(self.data.op_feats, dim=0, keepdim=True)
         op_feats_std[op_feats_std < 1e-6] = 1
-        self.source = source
-        self.search = search
         self.data.op_feats = (self.data.op_feats - op_feats_mean) / op_feats_std
         
     @property
