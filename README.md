@@ -39,6 +39,10 @@ python test_tpugraphs.py --cfg configs/tpugraphs.yaml
 
 If memory is not sufficient, change `batch_size` to 1 during evaluation. Set `cfg.train.ckpt_best` to `True` to save the best validation model during training for further evaluation.
 
+### Custom Model
+To create your own custom model, you can supply a configuration (e.g., by copying [configs/tpugraphs.yaml](https://github.com/kaidic/GST/blob/main/configs/tpugraphs.yaml)) and set the attribute `type` (inside of `model`) to some string that you register in [network/custom_tpu_gnn.py](https://github.com/kaidic/GST/blob/main/graphgps/network/custom_tpu_gnn.py).
+
+
 ### Reference
 
 If you find our paper and repo useful, please cite as
