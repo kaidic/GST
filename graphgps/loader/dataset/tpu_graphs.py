@@ -35,7 +35,7 @@ class TPUGraphs(InMemoryDataset):
         
     @property
     def raw_file_names(self) -> List[str]:
-        return [f'npz/layout/{self.search}/{self.source}']
+        return [f'npz/layout/{self.source}/{self.search}']
 
     @property
     def processed_file_names(self) -> List[str]:
