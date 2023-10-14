@@ -123,6 +123,7 @@ if __name__ == '__main__':
     args = parse_args()
     # Load config file
     set_cfg(cfg)
+    set_new_cfg_allowed(cfg, True)
     load_cfg(cfg, args)
     custom_set_out_dir(cfg, args.cfg_file, cfg.name_tag)
     dump_cfg(cfg)
